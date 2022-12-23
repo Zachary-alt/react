@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -8,6 +8,7 @@
  */
 
 import type {StyleXPlugin} from 'react-devtools-shared/src/types';
+import isArray from 'react-devtools-shared/src/isArray';
 
 const cachedStyleNameToValueMap: Map<string, string> = new Map();
 
@@ -28,9 +29,17 @@ export function crawlData(
   sources: Set<string>,
   resolvedStyles: Object,
 ): void {
-  if (Array.isArray(data)) {
+  if (data == null) {
+    return;
+  }
+
+  if (isArray(data)) {
     data.forEach(entry => {
-      if (Array.isArray(entry)) {
+      if (entry == null) {
+        return;
+      }
+
+      if (isArray(entry)) {
         crawlData(entry, sources, resolvedStyles);
       } else {
         crawlObjectProperties(entry, sources, resolvedStyles);
@@ -83,7 +92,9 @@ function getPropertyValueForStyleName(styleName: string): string | null {
     ]: any): CSSStyleSheet);
     // $FlowFixMe Flow doesn't konw about these properties
     const rules = styleSheet.rules || styleSheet.cssRules;
+    // $FlowFixMe `rules` is mixed
     for (let ruleIndex = 0; ruleIndex < rules.length; ruleIndex++) {
+      // $FlowFixMe `rules` is mixed
       const rule = rules[ruleIndex];
       // $FlowFixMe Flow doesn't konw about these properties
       const {cssText, selectorText, style} = rule;

@@ -25,6 +25,9 @@ const pathToTransformInfiniteLoops = require.resolve(
 const pathToTransformTestGatePragma = require.resolve(
   '../babel/transform-test-gate-pragma'
 );
+const pathToTransformReactVersionPragma = require.resolve(
+  '../babel/transform-react-version-pragma'
+);
 const pathToBabelrc = path.join(__dirname, '..', '..', 'babel.config.js');
 const pathToErrorCodes = require.resolve('../error-codes/codes.json');
 
@@ -82,6 +85,14 @@ module.exports = {
       const plugins = (isTestFile ? testOnlyPlugins : sourceOnlyPlugins).concat(
         babelOptions.plugins
       );
+      if (
+        isTestFile &&
+        isInDevToolsPackages &&
+        (process.env.REACT_VERSION ||
+          filePath.match(/\/transform-react-version-pragma-test/))
+      ) {
+        plugins.push(pathToTransformReactVersionPragma);
+      }
       return babel.transform(
         src,
         Object.assign(
@@ -89,6 +100,9 @@ module.exports = {
           babelOptions,
           {
             plugins,
+            sourceMaps: process.env.JEST_ENABLE_SOURCE_MAPS
+              ? process.env.JEST_ENABLE_SOURCE_MAPS
+              : false,
           }
         )
       );
@@ -96,12 +110,19 @@ module.exports = {
     return src;
   },
 
-  getCacheKey: createCacheKeyFunction([
-    __filename,
-    pathToBabel,
-    pathToBabelrc,
-    pathToTransformInfiniteLoops,
-    pathToTransformTestGatePragma,
-    pathToErrorCodes,
-  ]),
+  getCacheKey: createCacheKeyFunction(
+    [
+      __filename,
+      pathToBabel,
+      pathToBabelrc,
+      pathToTransformInfiniteLoops,
+      pathToTransformTestGatePragma,
+      pathToTransformReactVersionPragma,
+      pathToErrorCodes,
+    ],
+    [
+      (process.env.REACT_VERSION != null).toString(),
+      (process.env.NODE_ENV === 'development').toString(),
+    ]
+  ),
 };

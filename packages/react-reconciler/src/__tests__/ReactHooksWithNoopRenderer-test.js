@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -1777,7 +1777,7 @@ describe('ReactHooksWithNoopRenderer', () => {
         }, [props.count]);
         return <Text text={'Count: ' + count} />;
       }
-      expect(() =>
+      expect(() => {
         act(() => {
           ReactNoop.render(<Counter count={0} />, () =>
             Scheduler.unstable_yieldValue('Sync effect'),
@@ -1787,8 +1787,8 @@ describe('ReactHooksWithNoopRenderer', () => {
             'Sync effect',
           ]);
           expect(ReactNoop.getChildren()).toEqual([span('Count: (empty)')]);
-        }),
-      ).toErrorDev('flushSync was called from inside a lifecycle method');
+        });
+      }).toErrorDev('flushSync was called from inside a lifecycle method');
       expect(ReactNoop.getChildren()).toEqual([span('Count: 0')]);
     });
 
@@ -2648,32 +2648,32 @@ describe('ReactHooksWithNoopRenderer', () => {
       }
 
       const root1 = ReactNoop.createRoot();
-      expect(() =>
+      expect(() => {
         act(() => {
           root1.render(<App return={17} />);
-        }),
-      ).toErrorDev([
+        });
+      }).toErrorDev([
         'Warning: useEffect must not return anything besides a ' +
           'function, which is used for clean-up. You returned: 17',
       ]);
 
       const root2 = ReactNoop.createRoot();
-      expect(() =>
+      expect(() => {
         act(() => {
           root2.render(<App return={null} />);
-        }),
-      ).toErrorDev([
+        });
+      }).toErrorDev([
         'Warning: useEffect must not return anything besides a ' +
           'function, which is used for clean-up. You returned null. If your ' +
           'effect does not require clean up, return undefined (or nothing).',
       ]);
 
       const root3 = ReactNoop.createRoot();
-      expect(() =>
+      expect(() => {
         act(() => {
           root3.render(<App return={Promise.resolve()} />);
-        }),
-      ).toErrorDev([
+        });
+      }).toErrorDev([
         'Warning: useEffect must not return anything besides a ' +
           'function, which is used for clean-up.\n\n' +
           'It looks like you wrote useEffect(async () => ...) or returned a Promise.',
@@ -3052,32 +3052,32 @@ describe('ReactHooksWithNoopRenderer', () => {
       }
 
       const root1 = ReactNoop.createRoot();
-      expect(() =>
+      expect(() => {
         act(() => {
           root1.render(<App return={17} />);
-        }),
-      ).toErrorDev([
+        });
+      }).toErrorDev([
         'Warning: useInsertionEffect must not return anything besides a ' +
           'function, which is used for clean-up. You returned: 17',
       ]);
 
       const root2 = ReactNoop.createRoot();
-      expect(() =>
+      expect(() => {
         act(() => {
           root2.render(<App return={null} />);
-        }),
-      ).toErrorDev([
+        });
+      }).toErrorDev([
         'Warning: useInsertionEffect must not return anything besides a ' +
           'function, which is used for clean-up. You returned null. If your ' +
           'effect does not require clean up, return undefined (or nothing).',
       ]);
 
       const root3 = ReactNoop.createRoot();
-      expect(() =>
+      expect(() => {
         act(() => {
           root3.render(<App return={Promise.resolve()} />);
-        }),
-      ).toErrorDev([
+        });
+      }).toErrorDev([
         'Warning: useInsertionEffect must not return anything besides a ' +
           'function, which is used for clean-up.\n\n' +
           'It looks like you wrote useInsertionEffect(async () => ...) or returned a Promise.',
@@ -3089,6 +3089,87 @@ describe('ReactHooksWithNoopRenderer', () => {
           root3.unmount();
         }),
       ).toThrow('is not a function');
+    });
+
+    it('warns when setState is called from insertion effect setup', () => {
+      function App(props) {
+        const [, setX] = useState(0);
+        useInsertionEffect(() => {
+          setX(1);
+          if (props.throw) {
+            throw Error('No');
+          }
+        }, [props.throw]);
+        return null;
+      }
+
+      const root = ReactNoop.createRoot();
+      expect(() => {
+        act(() => {
+          root.render(<App />);
+        });
+      }).toErrorDev(['Warning: useInsertionEffect must not schedule updates.']);
+
+      expect(() => {
+        act(() => {
+          root.render(<App throw={true} />);
+        });
+      }).toThrow('No');
+
+      // Should not warn for regular effects after throw.
+      function NotInsertion() {
+        const [, setX] = useState(0);
+        useEffect(() => {
+          setX(1);
+        }, []);
+        return null;
+      }
+      act(() => {
+        root.render(<NotInsertion />);
+      });
+    });
+
+    it('warns when setState is called from insertion effect cleanup', () => {
+      function App(props) {
+        const [, setX] = useState(0);
+        useInsertionEffect(() => {
+          if (props.throw) {
+            throw Error('No');
+          }
+          return () => {
+            setX(1);
+          };
+        }, [props.throw, props.foo]);
+        return null;
+      }
+
+      const root = ReactNoop.createRoot();
+      act(() => {
+        root.render(<App foo="hello" />);
+      });
+      expect(() => {
+        act(() => {
+          root.render(<App foo="goodbye" />);
+        });
+      }).toErrorDev(['Warning: useInsertionEffect must not schedule updates.']);
+
+      expect(() => {
+        act(() => {
+          root.render(<App throw={true} />);
+        });
+      }).toThrow('No');
+
+      // Should not warn for regular effects after throw.
+      function NotInsertion() {
+        const [, setX] = useState(0);
+        useEffect(() => {
+          setX(1);
+        }, []);
+        return null;
+      }
+      act(() => {
+        root.render(<NotInsertion />);
+      });
     });
   });
 
@@ -3278,32 +3359,32 @@ describe('ReactHooksWithNoopRenderer', () => {
       }
 
       const root1 = ReactNoop.createRoot();
-      expect(() =>
+      expect(() => {
         act(() => {
           root1.render(<App return={17} />);
-        }),
-      ).toErrorDev([
+        });
+      }).toErrorDev([
         'Warning: useLayoutEffect must not return anything besides a ' +
           'function, which is used for clean-up. You returned: 17',
       ]);
 
       const root2 = ReactNoop.createRoot();
-      expect(() =>
+      expect(() => {
         act(() => {
           root2.render(<App return={null} />);
-        }),
-      ).toErrorDev([
+        });
+      }).toErrorDev([
         'Warning: useLayoutEffect must not return anything besides a ' +
           'function, which is used for clean-up. You returned null. If your ' +
           'effect does not require clean up, return undefined (or nothing).',
       ]);
 
       const root3 = ReactNoop.createRoot();
-      expect(() =>
+      expect(() => {
         act(() => {
           root3.render(<App return={Promise.resolve()} />);
-        }),
-      ).toErrorDev([
+        });
+      }).toErrorDev([
         'Warning: useLayoutEffect must not return anything besides a ' +
           'function, which is used for clean-up.\n\n' +
           'It looks like you wrote useLayoutEffect(async () => ...) or returned a Promise.',

@@ -1,5 +1,15 @@
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @noflow
+ */
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import {createRoot} from 'react-dom/client';
 import {
   activate as activateBackend,
   initialize as initializeBackend,
@@ -33,7 +43,7 @@ function init(appIframe, devtoolsContainer, appSource) {
 
   inject(contentDocument, appSource, () => {
     // $FlowFixMe Flow doesn't know about createRoot() yet.
-    ReactDOM.createRoot(devtoolsContainer).render(
+    createRoot(devtoolsContainer).render(
       <DevTools
         hookNamesModuleLoaderFunction={hookNamesModuleLoaderFunction}
         showTabBar={true}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -31,6 +31,36 @@ describe('Stylex plugin utils', () => {
     styleElements.forEach(styleElement => {
       document.head.removeChild(styleElement);
     });
+  });
+
+  it('should gracefully handle empty values', () => {
+    expect(getStyleXData(null)).toMatchInlineSnapshot(`
+      Object {
+        "resolvedStyles": Object {},
+        "sources": Array [],
+      }
+    `);
+
+    expect(getStyleXData(undefined)).toMatchInlineSnapshot(`
+      Object {
+        "resolvedStyles": Object {},
+        "sources": Array [],
+      }
+    `);
+
+    expect(getStyleXData('')).toMatchInlineSnapshot(`
+      Object {
+        "resolvedStyles": Object {},
+        "sources": Array [],
+      }
+    `);
+
+    expect(getStyleXData([undefined])).toMatchInlineSnapshot(`
+      Object {
+        "resolvedStyles": Object {},
+        "sources": Array [],
+      }
+    `);
   });
 
   it('should support simple style objects', () => {
